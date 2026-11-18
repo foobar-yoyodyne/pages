@@ -14,7 +14,8 @@
     .choice { display: block; margin: 8px 0; padding: 8px 12px; background: #eef; border: 1px solid #99c; border-radius: 4px; text-align: left; }
     .error { color: red; font-weight: bold; }
   </style>
-  <script src="https://unpkg.com/inkjs@2.4.0/dist/ink-with-compilers.js"></script>
+  <!-- ink-full.js is the UMD bundle that includes the compiler and exposes window.inkjs. -->
+  <script src="https://cdn.jsdelivr.net/npm/inkjs@2.4.0/dist/ink-full.js"></script>
 </head>
 <body>
 
@@ -43,7 +44,7 @@
     function runInk() {
       outputEl.replaceChildren();
       try {
-        // ink-with-compilers.js provides both Compiler and Story in the global inkjs object.
+        // ink-full.js exposes both Compiler and Story in the global inkjs object.
         const story = new inkjs.Compiler(codeEl.value).Compile();
         continueStory(story);
       } catch (e) {
