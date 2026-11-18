@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Web Ink Editor</title>
-  <script src="https://jsdelivr.net"></script>
+  <script type="module">
+    import inkjs from 'https://cdn.jsdelivr.net/npm/inkjs@2.4.0/+esm'
+  </script>
   <style>
     body { margin: 0; display: flex; height: 100vh; font-family: sans-serif; }
     #editor-pane, #player-pane { width: 50%; padding: 16px; box-sizing: border-box; display: flex; flex-direction: column; }
