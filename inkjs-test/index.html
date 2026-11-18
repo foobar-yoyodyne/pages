@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Web Ink Editor</title>
+  <script src="https://jsdelivr.net"></script>
+  <style>
+    body { margin: 0; display: flex; height: 100vh; font-family: sans-serif; }
+    #editor-pane, #player-pane { width: 50%; padding: 16px; box-sizing: border-box; display: flex; flex-direction: column; }
+    #editor-pane { border-right: 2px solid #ccc; background: #f9f9f9; }
+    textarea { flex: 1; font-family: monospace; font-size: 15px; padding: 10px; resize: none; }
+    #controls { margin-bottom: 10px; display: flex; gap: 10px; align-items: center; }
+    button { padding: 8px 16px; font-size: 14px; cursor: pointer; }
+    #output { flex: 1; overflow-y: auto; line-height: 1.6; }
+    .choice { display: block; margin: 8px 0; padding: 8px 12px; background: #eef; border: 1px solid #99c; border-radius: 4px; text-align: left; }
+    .error { color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div id="editor-pane">
+    <div id="controls">
+      <button onclick="runInk()">▶ 実行 / リセット</button>
+      <button onclick="downloadInk()">💾 .ink を保存</button>
+    </div>
+    <textarea id="code">こんにちは！Web上のInkエディタへようこそ。
+* [挨拶を返す]
+  元気そうですね！
+* [質問する]
+  これはブラウザだけで動いています。
+- 今日も良い一日を。
+-> END</textarea>
+  </div>
+
+  <div id="player-pane">
+    <div id="output"></div>
+  </div>
+
+  <script>
+    const outputEl = document.getElementById('output');
+    const codeEl = document.getElementById('code');
+
+    function runInk() {
+      outputEl.innerHTML = '';
+      try {
+        // テキストをコンパイルしてストーリーを生成
+        const story = new inkjs.Compiler(codeEl.value).Compile();
+        continueStory(story);
+      } catch (e) {
+        outputEl.innerHTML = `<p class="error">コンパイルエラー:<br>${e.message}</p>`;
+      }
+    }
+
+    function continueStory(story) {
+      // 本文をすべて出力
+      while (story.canContinue) {
+        const p = document.createElement('p');
+        p.textContent = story.Continue();
+        outputEl.appendChild(p);
+      }
+      // 選択肢ボタンを生成
+      story.currentChoices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'choice';
+        btn.textContent = choice.text;
+        btn.onclick = () => {
+          // 既存の選択肢を消して次へ進む
+          document.querySelectorAll('.choice').forEach(el => el.remove());
+          story.ChooseChoiceIndex(choice.index);
+          continueStory(story);
+        };
+        outputEl.appendChild(btn);
+      });
+    }
+
+    function downloadInk() {
+      const blob = new Blob([codeEl.value], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'story.ink';
+      a.click();
+    }
+
+    // 初回実行
+    runInk();
+  </script>
+</body>
+</html>
