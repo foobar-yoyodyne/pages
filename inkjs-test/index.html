@@ -3,9 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Web Ink Editor</title>
-  <script type="module">
-    import inkjs from 'https://cdn.jsdelivr.net/npm/inkjs@2.4.0/+esm'
-  </script>
   <style>
     body { margin: 0; display: flex; height: 100vh; font-family: sans-serif; }
     #editor-pane, #player-pane { width: 50%; padding: 16px; box-sizing: border-box; display: flex; flex-direction: column; }
@@ -22,8 +19,8 @@
 
   <div id="editor-pane">
     <div id="controls">
-      <button onclick="runInk()">▶ 実行 / リセット</button>
-      <button onclick="downloadInk()">💾 .ink を保存</button>
+      <button id="run-button" type="button">▶ 実行 / リセット</button>
+      <button id="download-button" type="button">💾 .ink を保存</button>
     </div>
     <textarea id="code">こんにちは！Web上のInkエディタへようこそ。
 * [挨拶を返す]
@@ -38,18 +35,23 @@
     <div id="output"></div>
   </div>
 
-  <script>
+  <script type="module">
+    import * as inkjs from 'https://cdn.jsdelivr.net/npm/inkjs@2.4.0/+esm';
+
     const outputEl = document.getElementById('output');
     const codeEl = document.getElementById('code');
 
     function runInk() {
-      outputEl.innerHTML = '';
+      outputEl.replaceChildren();
       try {
         // テキストをコンパイルしてストーリーを生成
         const story = new inkjs.Compiler(codeEl.value).Compile();
         continueStory(story);
       } catch (e) {
-        outputEl.innerHTML = `<p class="error">コンパイルエラー:<br>${e.message}</p>`;
+        const error = document.createElement('p');
+        error.className = 'error';
+        error.append('コンパイルエラー:', document.createElement('br'), e.message);
+        outputEl.appendChild(error);
       }
     }
 
@@ -65,23 +67,28 @@
         const btn = document.createElement('button');
         btn.className = 'choice';
         btn.textContent = choice.text;
-        btn.onclick = () => {
+        btn.addEventListener('click', () => {
           // 既存の選択肢を消して次へ進む
-          document.querySelectorAll('.choice').forEach(el => el.remove());
+          outputEl.querySelectorAll('.choice').forEach(el => el.remove());
           story.ChooseChoiceIndex(choice.index);
           continueStory(story);
-        };
+        });
         outputEl.appendChild(btn);
       });
     }
 
     function downloadInk() {
       const blob = new Blob([codeEl.value], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
+      a.href = url;
       a.download = 'story.ink';
       a.click();
+      URL.revokeObjectURL(url);
     }
+
+    document.getElementById('run-button').addEventListener('click', runInk);
+    document.getElementById('download-button').addEventListener('click', downloadInk);
 
     // 初回実行
     runInk();
